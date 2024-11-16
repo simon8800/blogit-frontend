@@ -1,10 +1,10 @@
-import Page from "./pages/Page";
+import BlogPage from "./pages/BlogPage";
 
 function App() {
   return (
-    <>
-      <Page />
-    </>
+    <div>
+      <BlogPage />
+    </div>
   )
 }
 
