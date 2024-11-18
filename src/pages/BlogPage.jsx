@@ -1,11 +1,11 @@
 import { useState } from "react";
 
 const textColors = [
-  {mainColor: "text-black", secondaryColor:"text-blue-500",label: "black"},
-  {mainColor: "text-red-500", secondaryColor:"text-cyan-400",label: "red"},
-  {mainColor: "text-amber-500", secondaryColor:"text-purple-500",label: "amber"},
-  {mainColor: "text-blue-500", secondaryColor:"text-amber-400",label: "blue"},
-  {mainColor: "text-orange-500", secondaryColor:"text-teal-500",label: "orange"},
+  {primaryColor: "text-black", secondaryColor:"text-blue-500",label: "black"},
+  {primaryColor: "text-red-500", secondaryColor:"text-cyan-400",label: "red"},
+  {primaryColor: "text-amber-500", secondaryColor:"text-purple-500",label: "amber"},
+  {primaryColor: "text-blue-500", secondaryColor:"text-amber-400",label: "blue"},
+  {primaryColor: "text-orange-500", secondaryColor:"text-teal-500",label: "orange"},
 ]
 
 const textFonts = [
@@ -32,7 +32,7 @@ const BlogPage = () => {
           <button key={tFont.label} onClick={() => setTextFont(tFont)}>{tFont.label}</button>
         ))}
       </div>
-      <div className={`blogContainer max-w-2xl ${textColor.mainColor} ${textFont.fontFam}`}>
+      <div className={`blogContainer max-w-2xl ${textColor.primaryColor} ${textFont.fontFam}`}>
         <div className="mb-5">
           <h1 className="text-xl font-medium">{blog.title}</h1>
           <p className={`text-md ${textColor.secondaryColor}`}>
