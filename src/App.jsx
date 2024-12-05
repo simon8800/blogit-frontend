@@ -1,10 +1,13 @@
-import BlogPage from "./pages/BlogPage";
-import EditorPage from "./pages/EditorPage";
+import { Link } from "react-router";
 
 function App() {
   return (
-    <div>
-      <EditorPage />
+    <div className="flex flex-col justify-center items-center p-10">
+      <h1 className="h1-style">Blog It</h1>
+      <nav className="flex flex-col p-5 gap-1">
+        <Link to="/login">Log In</Link>
+        <Link to="/register">Sign Up</Link>
+      </nav>
     </div>
   )
 }
