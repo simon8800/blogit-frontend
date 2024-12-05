@@ -1,6 +1,23 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  safelist: [
+    'text-gray-900',
+    'text-amber-900',
+    'text-slate-800',
+    'prose-headings:text-gray-900',
+    'prose-headings:text-amber-900',
+    'prose-headings:text-slate-800',
+    'prose-p:text-gray-900',
+    'prose-p:text-amber-900',
+    'prose-p:text-slate-800',
+    'prose-li:text-gray-900',
+    'prose-li:text-amber-900',
+    'prose-li:text-slate-800',
+    'prose-strong:text-gray-900',
+    'prose-strong:text-amber-900',
+    'prose-strong:text-slate-800',
+  ],
   theme: {
     extend: {
       colors: {
@@ -15,7 +32,14 @@ export default {
         primaryText: "#2F2F2F",
         secondaryText: "#5F5F5F",
       },
+      fontFamily: {
+        'modern': ['Inter', 'system-ui', 'sans-serif'],
+        'classic': ['Libre Baskerville', 'Georgia', 'serif'],
+        'book': ['Merriweather', 'Georgia', 'serif'],
+      },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 };
