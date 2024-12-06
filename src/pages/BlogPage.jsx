@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import Header from "../components/Header";
 import { formatDate } from "../utils/formatDate";
 import { getAuthToken } from '../utils/auth';
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const BlogPage = () => {
   const { id } = useParams();
@@ -16,6 +17,7 @@ const BlogPage = () => {
   const [selectedBackground, setSelectedBackground] = useState('bg-white');
   const [userEmail, setUserEmail] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     const token = getAuthToken(navigate);
@@ -98,6 +100,34 @@ const BlogPage = () => {
     }
   };
 
+  const handleDelete = async () => {
+    const token = getAuthToken(navigate);
+    if (!token) return;
+
+    try {
+      setIsUpdating(true);
+      const response = await fetch(`http://localhost:3000/api/posts/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete post');
+      }
+
+      alert('Post deleted successfully');
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Failed to delete post');
+    } finally {
+      setIsUpdating(false);
+      setShowDeleteModal(false);
+    }
+  };
+
   const fonts = [
     { name: 'Modern', class: 'font-modern', description: 'Clean and contemporary' },
     { name: 'Classic', class: 'font-classic', description: 'Elegant and timeless' },
@@ -155,6 +185,14 @@ const BlogPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50">
       <Header />
       <div className="max-w-4xl mx-auto px-4 pb-16">
+        {/* Delete Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDelete}
+          title="Delete Post"
+          message="Are you sure you want to delete this post? This action cannot be undone."
+        />
         {/* Customization Panel */}
         <div className="fixed top-24 right-4 z-10">
           <button
@@ -220,17 +258,30 @@ const BlogPage = () => {
             <div className="flex justify-between items-start mb-4">
               <h1 className="text-4xl font-bold">{blog.title}</h1>
               {isOwner && (
-                <button
-                  onClick={handlePublishToggle}
-                  disabled={isUpdating}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    blog.published
-                      ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                      : 'bg-amber-600 text-white hover:bg-amber-700'
-                  } ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {isUpdating ? 'Updating...' : (blog.published ? 'Unpublish' : 'Publish')}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handlePublishToggle}
+                    disabled={isUpdating}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      blog.published
+                        ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                        : 'bg-amber-600 text-white hover:bg-amber-700'
+                    } ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {isUpdating ? 'Updating...' : (blog.published ? 'Unpublish' : 'Publish')}
+                  </button>
+                  {!blog.published && (
+                    <button
+                      onClick={() => setShowDeleteModal(true)}
+                      disabled={isUpdating}
+                      className={`px-4 py-2 rounded-lg transition-colors bg-red-600 text-white hover:bg-red-700 ${
+                        isUpdating ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {isUpdating ? 'Deleting...' : 'Delete'}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
             <div className="flex items-center gap-4 text-opacity-90 mb-8">
