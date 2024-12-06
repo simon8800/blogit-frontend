@@ -9,6 +9,7 @@ import HomePage from './pages/HomePage.jsx';
 import BlogPage from './pages/BlogPage.jsx';
 import EditorPage from './pages/EditorPage.jsx';
 import LandingPage from './pages/LandingPage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -20,6 +21,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/home" element={<HomePage />}/>
         <Route path="/blog/:id" element={<BlogPage />}/>
         <Route path="/editor" element={<EditorPage />}/>
+        <Route path="/dashboard" element={<DashboardPage />}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,

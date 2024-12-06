@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import Header from "../components/Header";
 import { formatDate } from "../utils/formatDate";
+import { getAuthToken } from '../utils/auth';
 
 const BlogPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [blog, setBlog] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,29 +14,89 @@ const BlogPage = () => {
   const [selectedFont, setSelectedFont] = useState('font-modern');
   const [selectedColor, setSelectedColor] = useState('text-gray-900');
   const [selectedBackground, setSelectedBackground] = useState('bg-white');
+  const [userEmail, setUserEmail] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    const fetchBlog = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await fetch(`http://localhost:3000/api/posts/${id}`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch blog post');
+    const token = getAuthToken(navigate);
+    if (token) {
+      fetch('http://localhost:3000/api/users/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
+      })
+      .then(response => response.json())
+      .then(data => {
+        setUserEmail(data.email);
+      })
+      .catch(error => {
+        console.error('Error fetching user info:', error);
+      });
+    }
+  }, [navigate]);
 
-        const data = await response.json();
-        setBlog(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
+  /**
+   * Fetches the blog post from the API.
+   * If the user is logged in, includes the authentication token to get additional data.
+   * If the API request fails, sets the error state.
+   * If the API request succeeds, sets the blog state with the received post.
+   */
+  const fetchBlog = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const token = getAuthToken(navigate);
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      
+      const response = await fetch(`http://localhost:3000/api/posts/${id}`, {
+        headers
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch blog post');
       }
-    };
 
+      const data = await response.json();
+      setBlog(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchBlog();
-  }, [id]);
+  }, [id, navigate]);
+
+  const handlePublishToggle = async () => {
+    const token = getAuthToken(navigate);
+    if (!token || isUpdating) return;
+
+    try {
+      setIsUpdating(true);
+      const response = await fetch(`http://localhost:3000/api/posts/${id}/publish`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update post');
+      }
+
+      await response.json();
+      await fetchBlog();
+    } catch (error) {
+      console.error('Error updating post:', error);
+      alert('Failed to update post status');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const fonts = [
     { name: 'Modern', class: 'font-modern', description: 'Clean and contemporary' },
@@ -87,10 +149,12 @@ const BlogPage = () => {
     );
   }
 
+  const isOwner = blog && userEmail === blog.author.email;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50">
       <Header />
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-4xl mx-auto px-4 pb-16">
         {/* Customization Panel */}
         <div className="fixed top-24 right-4 z-10">
           <button
@@ -153,11 +217,26 @@ const BlogPage = () => {
         {/* Blog Content */}
         {blog && (
           <div className={`max-w-3xl mx-auto p-8 my-8 rounded-lg shadow-md ${selectedFont} ${selectedColor} ${selectedBackground}`}>
-            <h1 className="text-4xl font-bold mb-4">{blog.title}</h1>
+            <div className="flex justify-between items-start mb-4">
+              <h1 className="text-4xl font-bold">{blog.title}</h1>
+              {isOwner && (
+                <button
+                  onClick={handlePublishToggle}
+                  disabled={isUpdating}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    blog.published
+                      ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                      : 'bg-amber-600 text-white hover:bg-amber-700'
+                  } ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {isUpdating ? 'Updating...' : (blog.published ? 'Unpublish' : 'Publish')}
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-4 text-opacity-90 mb-8">
               <span>By <span className="text-amber-600">{blog.author.handle}</span></span>
               <span>•</span>
-              <span>{formatDate(new Date(blog.publishedAt))}</span>
+              <span>{blog.publishedAt ? formatDate(new Date(blog.publishedAt)) : 'Not published'}</span>
             </div>
             <div 
               className="prose prose-lg max-w-none"
